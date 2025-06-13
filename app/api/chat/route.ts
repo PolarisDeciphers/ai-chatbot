@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     const result = await openaiResponse.json();
     return new Response(JSON.stringify(result), { status: 200 });
   } catch (err) {
-  const error = err as Error; // 👈 Cast 'err' to Error
+  const error = err as Error;
   return new Response(
     JSON.stringify({ error: 'Unexpected server error', details: error.message }),
     { status: 500 }
