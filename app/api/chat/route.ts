@@ -1,39 +1,48 @@
-// Required for Next.js to use edge runtime (optional)
 export const runtime = 'edge';
 
 import { NextRequest } from 'next/server';
 
 export async function POST(req: NextRequest) {
-  const { messages } = await req.json();
-  const apiKey = process.env.OPENAI_API_KEY;
-
-  if (!apiKey) {
-    return new Response(JSON.stringify({ error: 'Missing OpenAI API Key' }), {
-      status: 500,
-    });
-  }
-
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const body = await req.json();
+
+    if (!body || !body.messages) {
+      return new Response(
+        JSON.stringify({ error: 'Missing "messages" in request body' }),
+        { status: 400 }
+      );
+    }
+
+    const apiKey = process.env.OPENAI_API_KEY;
+    const model = process.env.OPENAI_MODEL || 'gpt-4o';
+
+    if (!apiKey) {
+      return new Response(
+        JSON.stringify({ error: 'OPENAI_API_KEY not set in env variables' }),
+        { status: 500 }
+      );
+    }
+
+    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || 'gpt-4o',
-        messages,
+        model,
+        messages: body.messages,
         temperature: 0.7,
       }),
     });
 
-    const data = await response.json();
-    return new Response(JSON.stringify(data), {
-      status: 200,
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({ error: 'Failed to connect to OpenAI' }), {
-      status: 500,
-    });
+    const result = await openaiResponse.json();
+    return new Response(JSON.stringify(result), { status: 200 });
+  } catch (err) {
+    return new Response(
+      JSON.stringify({ error: 'Unexpected server error', details: err.message }),
+      { status: 500 }
+    );
   }
 }
+
