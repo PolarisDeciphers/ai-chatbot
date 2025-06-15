@@ -3,6 +3,8 @@ import Head from 'next/head';
 import ChatBox from '../components/ChatBox';
 import FileUploader from '../components/FileUploader';
 import ProjectSelector from '../components/ProjectSelector';
+import { useState, useEffect } from 'react';
+
 
 export default function Home() {
   return (
